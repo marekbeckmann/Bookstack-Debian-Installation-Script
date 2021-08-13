@@ -6,7 +6,7 @@
 
 ```
 git clone https://github.com/marekbeckmann/Bookstack-Debian-10-Installation-Script.git ~/install-bookstack
-chmod +x ~/install-bookstack-debian.sh
+cd ~/install-bookstack && chmod +x ~/install-bookstack-debian.sh
 ```
 ### 2. Run the script
 
