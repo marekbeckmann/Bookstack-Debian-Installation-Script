@@ -52,9 +52,9 @@ php artisan key:generate --no-interaction --force
 php artisan migrate --no-interaction --force
 
 logToScreen "Setting up Apache2 VHOST"
-echo "Listen 8080" | tee /etc/apache2/ports.conf
+echo "Listen 127.0.0.1:8080" | tee /etc/apache2/ports.conf
 tee /etc/apache2/sites-available/bookstack.conf >/dev/null <<EOT
-<VirtualHost *:8080>
+<VirtualHost 127.0.0.1:8080>
 	ServerName ${fqdn}
 	ServerAdmin webmaster@localhost
 	DocumentRoot /var/www/bookstack/public/
