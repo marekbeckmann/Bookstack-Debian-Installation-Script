@@ -32,8 +32,8 @@ You can run the script with the following parameters:
 ```
 sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com -i /var/www/bookstack1 -f
 ```
+This will install Bookstack to `/var/www/bookstack1` and create an SSL certificate for the domain `docs.example.com`. If any files/directories already exist, they will be overwritten
 
-If you don't provide a domain/email when running the script, it will be queried interactively.
-
+If you don't provide a domain when running the script, it will be queried interactively.
 Without any options, the script will then install Bookstack to `/var/www/bookstack`. It will furthermore setup NGINX to reverse proxy to Apache2 and configure SSL access. 
 If Certbot fails to create a Let's Encrypt Certificate (e.g a on a local machine), the script will automatically set up a self-signed Certificate. This certificate should, at most, be used for internal purposes. 
