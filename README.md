@@ -28,7 +28,7 @@ You can run the script with the following parameters:
 | `--no-cert` | Doesn't attempt to create a SSL certificate (NGINX config will fail) |
 
 
-**Example: **
+**Example:**
 ```
 sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com -i /var/www/bookstack1 -f
 ```
