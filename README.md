@@ -20,13 +20,12 @@ You can run the script with the following parameters:
 
 </td><td style="width: 69.2592%; height: 35px;">Specifies installation directory (Defaults to /var/www/bookstack)</td></tr><tr style="height: 29px;"><td style="width: 30.7408%; height: 29px;">-f --force</td><td style="width: 69.2592%; height: 29px;">Overrides existing files and directories</td></tr><tr style="height: 30px;"><td style="width: 30.7408%; height: 30px;">-u --update <directory></td><td style="width: 69.2592%; height: 30px;">Updates bookstack installation in specified directory (Defaults to /var/www/bookstack)</td></tr><tr style="height: 29px;"><td style="width: 30.7408%; height: 29px;">--no-cert</td><td style="width: 69.2592%; height: 29px;">Doesn't attempt to create a SSL certificate (NGINX config will fail)</td></tr></tbody></table>
 
+**Example: **
+```
+sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com -i /var/www/bookstack1 -f
+```
 
+If you don't provide a domain/email when running the script, it will be queried interactively.
 
-After that, provide your desired FQDN, e.g. `docs.example.com` and a contact email for Let's Encrypt, e.g `webadmin@example.com`
-The Script will then install Bookstack to `/var/www/bookstack`. It will furthermore setup NGINX to reverse proxy to Apache2 and configure SSL access. 
-If Certbot fails to create a Let's Encrypt Certificate, the script will automatically set up a self-signed Certificate. This certificate should, at most, be used for internal purposes. 
-
-
-
-
-
+Without any options, the script will then install Bookstack to `/var/www/bookstack`. It will furthermore setup NGINX to reverse proxy to Apache2 and configure SSL access. 
+If Certbot fails to create a Let's Encrypt Certificate (e.g a on a local machine), the script will automatically set up a self-signed Certificate. This certificate should, at most, be used for internal purposes. 
