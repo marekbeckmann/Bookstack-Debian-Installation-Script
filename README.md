@@ -30,9 +30,9 @@ You can run the script with the following parameters:
 
 **Example:**
 ```
-sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com -i /var/www/bookstack1 -f
+sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com -i /var/www/bookstack1
 ```
-This will install Bookstack to `/var/www/bookstack1` and create an SSL certificate for the domain `docs.example.com`. If any files/directories already exist, they will be overwritten
+This will install Bookstack to `/var/www/bookstack1` and create an SSL certificate for the domain `docs.example.com`. If any files/directories already exist, the script will abort and warn you about it. Please use the `-f` option cautiously.
 
 If you don't provide a domain when running the script, it will be queried interactively.
 Without any options, the script will then install Bookstack to `/var/www/bookstack`. It will furthermore setup NGINX to reverse proxy to Apache2 and configure SSL access. 
