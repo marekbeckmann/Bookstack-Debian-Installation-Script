@@ -29,32 +29,32 @@ function msg_error() {
 
 function installPackages() {
         msg_info "Updating system"
-        apt -y update >/dev/null 2>&1
-        apt -y full-upgrade >/dev/null 2>&1
+        apt-get -y update >/dev/null 2>&1
+        apt-get -y full-upgrade >/dev/null 2>&1
         msg_ok "System updated"
         msg_info "Installing necessary packages"
-        apt -y install wget pwgen unzip git curl apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli} >/dev/null 2>&1
+        apt-get -y install wget pwgen unzip git curl apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli} >/dev/null 2>&1
         msg_ok "All Packages installed"
 }
 
 function setupDB() {
         msg_info "Setting up database"
-        bookstackpwd="$(pwgen -N 1 -s 96)"
-        mysql -u root -e "DROP USER ''@'localhost'"
-        mysql -u root -e "DROP USER ''@'$(hostname)'"
-        mysql -u root -e "DROP DATABASE test"
-        mysql -u root -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
-        mysql -u root -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%'"
-        mysql -u root -e "FLUSH PRIVILEGES"
-        mysql -u root -e "CREATE DATABASE bookstack"
-        mysql -u root -e "CREATE USER 'bookstack'@'localhost' IDENTIFIED BY '$bookstackpwd'"
-        mysql -u root -e "GRANT ALL ON bookstack.* TO 'bookstack'@'localhost'"
-        mysql -u root -e "FLUSH PRIVILEGES"
+        bookstackpwd="$(pwgen -N 1 -s 96)" >/dev/null 2>&1
+        mysql -u root -e "DROP USER ''@'localhost'" >/dev/null 2>&1
+        mysql -u root -e "DROP USER ''@'$(hostname)'" >/dev/null 2>&1
+        mysql -u root -e "DROP DATABASE test" >/dev/null 2>&1
+        mysql -u root -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')" >/dev/null 2>&1
+        mysql -u root -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%'" >/dev/null 2>&1
+        mysql -u root -e "FLUSH PRIVILEGES" >/dev/null 2>&1
+        mysql -u root -e "CREATE DATABASE bookstack" >/dev/null 2>&1
+        mysql -u root -e "CREATE USER 'bookstack'@'localhost' IDENTIFIED BY '$bookstackpwd'" >/dev/null 2>&1
+        mysql -u root -e "GRANT ALL ON bookstack.* TO 'bookstack'@'localhost'" >/dev/null 2>&1
+        mysql -u root -e "FLUSH PRIVILEGES" >/dev/null 2>&1
         msg_ok "Database setup finished successfully"
 }
 
 function setupBookstack() {
-        if [[ -n "$(ls -A "$installDir")" ]] && [[ "$force" != true ]]; then
+        if [[ -n "$(ls -A "$installDir" >/dev/null 2>&1)" ]] && [[ "$force" != true ]]; then
                 msg_error "Directory not empty. Use -f to force install"
                 exit 1
         else
@@ -92,8 +92,8 @@ function setupBookstack() {
 
 function configureApache() {
         msg_info "Setting up Apache2"
-        echo "Listen 127.0.0.1:8080" | tee /etc/apache2/ports.conf
-        if [[ -n "$(ls -A /etc/apache2/sites-available/bookstack.conf)" ]] && [[ "$force" != true ]]; then
+        echo "Listen 127.0.0.1:8080" | tee /etc/apache2/ports.conf >/dev/null 2>&1
+        if [[ -n "$(ls -A /etc/apache2/sites-available/bookstack.conf >/dev/null 2>&1)" ]] && [[ "$force" != true ]]; then
                 msg_error "Bookstack VHOST already exists. Use -f to force install"
                 exit 1
         else
@@ -144,7 +144,7 @@ function deploySSLCert() {
         if [[ "$nocert" != true ]]; then
                 msg_error "Using Self Signed Certificate (Certbot failed)"
                 msg_info "Creating Self Signed Certificate"
-                openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=NA/ST=None/L=None/O=None/CN=${fqdn}" -keyout /etc/ssl/private/bookstack-selfsigned.key -out /etc/ssl/certs/bookstack-selfsigned.crt
+                openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=NA/ST=None/L=None/O=None/CN=${fqdn}" -keyout /etc/ssl/private/bookstack-selfsigned.key -out /etc/ssl/certs/bookstack-selfsigned.crt >/dev/null 2>&1
                 sed -i "s/\/etc\/letsencrypt\/live\/${fqdn}\/fullchain.pem/\/etc\/ssl\/certs\/bookstack-selfsigned.crt/g" /etc/nginx/sites-available/"${fqdn}"
                 sed -i "s/\/etc\/letsencrypt\/live\/${fqdn}\/privkey.pem/\/etc\/ssl\/private\/bookstack-selfsigned.key/g" /etc/nginx/sites-available/"${fqdn}"
                 msg_ok "Self Signed Certificate created successfully"
@@ -155,9 +155,9 @@ function deploySSLCert() {
 
 function configureNginx() {
         msg_info "Installing and setting up Nginx"
-        apt -y install nginx certbot python3-certbot-nginx >/dev/null 2>&1
+        apt-get -y install nginx certbot python3-certbot-nginx >/dev/null 2>&1
         rm /etc/nginx/sites-enabled/default
-        if [[ -n "$(ls -A /etc/nginx/sites-available/"${fqdn}")" ]] && [[ "$force" != true ]]; then
+        if [[ -n "$(ls -A /etc/nginx/sites-available/"${fqdn}" >/dev/null 2>&1)" ]] && [[ "$force" != true ]]; then
                 msg_error "Nginx config already exists. Use -f to force install"
                 exit 1
         else
@@ -201,7 +201,7 @@ EOT
         ln -s /etc/nginx/sites-available/"${fqdn}" /etc/nginx/sites-enabled/
         if [[ "$nocert" != true ]]; then
                 msg_info "Requesting SSL Certificate"
-                certbot --nginx --non-interactive --agree-tos --domains "${fqdn}" --email "${mail}" ||
+                certbot --nginx --non-interactive --agree-tos --domains "${fqdn}" --email "${mail}" >/dev/null 2>&1 ||
                         msg_error "Certificate creation failed" &&
                         deploySSLCert
                 msg_ok "SSL Certificate created successfully"
