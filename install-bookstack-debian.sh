@@ -33,7 +33,7 @@ function installPackages() {
         apt -y full-upgrade >/dev/null 2>&1
         msg_ok "System updated"
         msg_info "Installing necessary packages"
-        apt -y install wget pwgen unzip git curl apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli}
+        apt -y install wget pwgen unzip git curl apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli} >/dev/null 2>&1
         msg_ok "All Packages installed"
 }
 
