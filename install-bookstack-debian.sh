@@ -215,12 +215,12 @@ function scriptSummary() {
         msg_ok "Bookstack installed successfully"
 
         printf '%s\n' "
-        Installation complete!
-        If Certbot failed, a self-signed certificate was created for you, unless you specified not to.
-        How to login:
-        Bookstack URL: https://$fqdn
-        Email: admin@admin.com
-        Password: password"
+Installation complete!
+If Certbot failed, a self-signed certificate was created for you, unless you specified not to.
+How to login:
+  Bookstack URL: https://$fqdn
+  Email: admin@admin.com
+  Password: password"
 
 }
 
