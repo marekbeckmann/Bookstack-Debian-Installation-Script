@@ -59,7 +59,7 @@ function setupBookstack() {
                 exit 1
         else
                 if [[ "$force" = true ]]; then
-                        rm -rf "${installDir:?}/"
+                        rm -rf "${installDir:?}/" >/dev/null 2>&1
                 fi
                 msg_info "Getting latest bookstack release"
                 mkdir -p "$installDir"
@@ -71,7 +71,7 @@ function setupBookstack() {
                 msg_info "Installing Composer"
                 curl -s https://getcomposer.org/installer -o composer-setup.php >/dev/null 2>&1
                 php composer-setup.php --quiet
-                rm -f composer-setup.php
+                rm -f composer-setup.php >/dev/null 2>&1
                 sudo -u www-data php composer.phar install --no-dev --no-plugins >/dev/null 2>&1
                 msg_ok "Composer installed successfully"
 
@@ -156,7 +156,7 @@ function deploySSLCert() {
 function configureNginx() {
         msg_info "Installing and setting up Nginx"
         apt-get -y install nginx certbot python3-certbot-nginx >/dev/null 2>&1
-        rm /etc/nginx/sites-enabled/default
+        rm /etc/nginx/sites-enabled/default >/dev/null 2>&1
         if [[ -n "$(ls -A /etc/nginx/sites-available/"${fqdn}" >/dev/null 2>&1)" ]] && [[ "$force" != true ]]; then
                 msg_error "Nginx config already exists. Use -f to force install"
                 exit 1
@@ -198,7 +198,7 @@ server {
 }
 EOT
         fi
-        ln -s /etc/nginx/sites-available/"${fqdn}" /etc/nginx/sites-enabled/
+        ln -s /etc/nginx/sites-available/"${fqdn}" /etc/nginx/sites-enabled/ >/dev/null 2>&1
         if [[ "$nocert" != true ]]; then
                 msg_info "Requesting SSL Certificate"
                 certbot --nginx --non-interactive --agree-tos --domains "${fqdn}" --email "${mail}" >/dev/null 2>&1 ||
@@ -214,7 +214,8 @@ function scriptSummary() {
         systemctl restart nginx >/dev/null 2>&1
         msg_ok "Bookstack installed successfully"
 
-        printf '%s\n' "Installation complete!
+        printf '%s\n' "
+        Installation complete!
         If Certbot failed, a self-signed certificate was created for you, unless you specified not to.
         How to login:
         Bookstack URL: https://$fqdn
