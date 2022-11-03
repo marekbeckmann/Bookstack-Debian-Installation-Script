@@ -261,6 +261,7 @@ function updateBS() {
         msg_ok "Cleanup finished"
         NEW_VERS="$(cat "${BOOKSTACK_DIR}"/version)"
         msg_ok "Bookstack updated from ${CURRENT_VERS} to ${NEW_VERS}"
+        exit 0
 }
 
 function script_init() {
