@@ -45,7 +45,7 @@ function errorHandler() {
 function getIni() {
         startsection="$1"
         endsection="$2"
-        output="$(awk "/$startsection/{ f = 1; next } /$endsection/{ f = 0 } f" "${configFile}")" 2>/dev/null || errorHandler "Unable to read ${configFile}"
+        output="$(awk "/$startsection/{ f = 1; next } /$endsection/{ f = 0 } f" "${configFile}")" >/dev/null 2>&1 || errorHandler "Unable to read ${configFile}"
 }
 
 function installPackages() {
@@ -270,7 +270,10 @@ function script_init() {
                 read -rp "Enter Mail for Certbot: " mail
         fi
         if [[ -z "$configFile" ]]; then
-                configFile="$(dirname "$0")/config.ini"
+                configFile="$(
+                        cd -- "$(dirname "$0")" >/dev/null 2>&1
+                        pwd -P
+                )/config.ini"
         fi
         if [[ "$fqdn" = "" ]] || [[ "$EUID" != 0 ]]; then
                 clear
