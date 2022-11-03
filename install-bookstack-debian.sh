@@ -11,6 +11,11 @@ BFR="\\r\\033[K"
 HOLD="-"
 CM="${GN}✓${CL}"
 CROSS="${RD}✗${CL}"
+WARN="${YW}⚠${CL}"
+
+BACKUP_DIR="/root/bookstack-backups"
+BOOKSTACK_DIR="/var/www/bookstack"
+DATE="$(date +%d-%m-%Y)"
 
 function msg_info() {
         local msg="$1"
@@ -27,13 +32,29 @@ function msg_error() {
         echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
 }
 
+function msg_warning() {
+        local msg="$1"
+        echo -e "${BFR} ${WARN} ${YW}${msg}${CL}"
+}
+
+function errorHandler() {
+        msg_error "$1"
+        exit 1
+}
+
+function getIni() {
+        startsection="$1"
+        endsection="$2"
+        output="$(awk "/$startsection/{ f = 1; next } /$endsection/{ f = 0 } f" "${configFile}")"
+}
+
 function installPackages() {
         msg_info "Updating system"
         apt-get -y update >/dev/null 2>&1
         apt-get -y full-upgrade >/dev/null 2>&1
         msg_ok "System updated"
         msg_info "Installing necessary packages"
-        apt-get -y install wget pwgen unzip git curl apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli} >/dev/null 2>&1
+        apt-get -y install wget pwgen unzip git curl sudo apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli} >/dev/null 2>&1
         msg_ok "All Packages installed"
 }
 
@@ -63,14 +84,14 @@ function setupBookstack() {
                 fi
                 msg_info "Getting latest bookstack release"
                 mkdir -p "$installDir"
-                cd "$installDir" || exit 1
+                cd "$installDir" || errorHandler "Failed to access bookstack directory"
                 git clone https://github.com/BookStackApp/BookStack.git --branch release --single-branch "$installDir" >/dev/null 2>&1
-                chown -R www-data: "$installDir"
+                chown -R www-data: "$installDir" >/dev/null 2>&1
                 msg_ok "Bookstack downloaded successfully"
 
                 msg_info "Installing Composer"
                 curl -s https://getcomposer.org/installer -o composer-setup.php >/dev/null 2>&1
-                php composer-setup.php --quiet
+                php composer-setup.php --quiet >/dev/null 2>&1
                 rm -f composer-setup.php >/dev/null 2>&1
                 sudo -u www-data php composer.phar install --no-dev --no-plugins >/dev/null 2>&1
                 msg_ok "Composer installed successfully"
@@ -97,38 +118,16 @@ function configureApache() {
                 msg_error "Bookstack VHOST already exists. Use -f to force install"
                 exit 1
         else
-                tee /etc/apache2/sites-available/bookstack.conf >/dev/null <<EOT
-<VirtualHost 127.0.0.1:8080>
-        ServerName ${fqdn}
-        ServerAdmin webmaster@localhost
-        DocumentRoot $installDir/public/
-    <Directory $installDir/public/>
-        Options Indexes FollowSymLinks
-        AllowOverride None
-        Require all granted
-        <IfModule mod_rewrite.c>
-            <IfModule mod_negotiation.c>
-                Options -MultiViews -Indexes
-            </IfModule>
+                getIni "START_APACHECONF" "END_APACHECONF"
+                printf "%s" "$output" | tee /etc/apache2/sites-available/bookstack.conf >/dev/null 2>&1
 
-            RewriteEngine On
-            RewriteCond %{HTTP:Authorization} .
-            RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteCond %{REQUEST_URI} (.+)/$
-            RewriteRule ^ %1 [L,R=301]
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteRule ^ index.php [L]
-        </IfModule>
-    </Directory>
-</VirtualHost>
-EOT
         fi
 
         a2enmod rewrite >/dev/null 2>&1
         if [ -f /etc/os-release ]; then
                 . /etc/os-release
+        else
+                msg_warning "Failed to get OS Version"
         fi
         if [[ "$VERSION_ID" = 11 ]]; then
                 a2enmod proxy_fcgi setenvif >/dev/null 2>&1
@@ -161,42 +160,8 @@ function configureNginx() {
                 msg_error "Nginx config already exists. Use -f to force install"
                 exit 1
         else
-                tee /etc/nginx/sites-available/"${fqdn}" >/dev/null <<EOT
-upstream bookstack {
-    server 127.0.0.1:8080;
-}
-
-server {
-    server_name ${fqdn};
-    listen [::]:443 ssl ipv6only=on;
-    listen 443 ssl;
-    ssl_certificate /etc/letsencrypt/live/${fqdn}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${fqdn}/privkey.pem;
-
-    location / {
-        proxy_pass http://bookstack;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_set_header X-Nginx-Proxy true;
-        proxy_redirect off;
-}
-
-}
-
-server {
-
-    listen 80 ;
-    listen [::]:80 ;
-    server_name ${fqdn};
-    return 301 https://\$server_name\$request_uri;
-
-}
-EOT
+                getIni "START_NGINXCONF" "END_NGINXCONF"
+                printf "%s" "$output" | tee /etc/nginx/sites-available/"${fqdn}" >/dev/null 2>&1
         fi
         ln -s /etc/nginx/sites-available/"${fqdn}" /etc/nginx/sites-enabled/ >/dev/null 2>&1
         if [[ "$nocert" != true ]]; then
@@ -240,43 +205,76 @@ You can use the following Options:
 More Documentation can be found on Github: https://github.com/marekbeckmann/Bookstack-Debian-Installation-Script"
 }
 
-function updateBS() {
-        if [[ "$updateDir" = "" ]]; then
-                updateDir="/var/www/bookstack"
+function backup() {
+        msg_info "Backing up Bookstack"
+        BACKUP_DEST="$BACKUP_DIR"/Backup_"${DATE}"
+        mkdir -p "$BACKUP_DEST" >/dev/null 2>&1
+        zip -r "${BACKUP_DEST}"/bookstack-web-bak.zip "${BOOKSTACK_DIR}" >/dev/null 2>&1
+        mysqldump -u root bookstack >"${BACKUP_DEST}"/bookstack-db-bak.sql >/dev/null 2>&1 || errorHandler "Failed to backup database, aborting"
+        msg_ok "Backup complete!"
+        updateBS
+}
+
+function checkBookstack() {
+        msg_info "Checking Bookstack installation..."
+        zipInstalled="$(zip -v >/dev/null 2>&1 && echo "true" || echo "false")"
+        if [[ "$zipInstalled" == "false" ]]; then
+                msg_error "Zip utility not installed, aborting"
+                exit 1
         fi
-        msg_info "Backuping up current instance to $HOME"
-        tar cfvj ~/bookstack-web-bak-"$(date +"%m-%d-%Y")".tar.bz2 "$updateDir" >/dev/null 2>&1
-        mysqldump -u root bookstack >~/bookstack-db-bak-"$(date +"%m-%d-%Y")".sql >/dev/null 2>&1
-        msg_ok "Backup created successfully"
-        msg_info "Updating Bookstack..."
-        cd "$updateDir" || msg_error "BookStack Directory doesn't exist" && exit 1
+        sudoInstalled="$(sudo -V >/dev/null 2>&1 && echo "true" || echo "false")"
+        if [[ "$sudoInstalled" == "false" ]]; then
+                msg_error "Sudo utility not installed, aborting"
+                exit 1
+        fi
+        CURRENT_VERS="$(cat "${BOOKSTACK_DIR}"/version 2>/dev/null)"
+        if [[ $? -ne 0 ]]; then
+                msg_error "Bookstack not found in ${BOOKSTACK_DIR}"
+                exit 1
+        else
+                msg_ok "Found Bookstack version ${CURRENT_VERS}"
+        fi
+        backup
+}
+
+function updateBS() {
+        cd "${BOOKSTACK_DIR}" || errorHandler "Failed to change directory to ${BOOKSTACK_DIR}, aborting"
+        msg_info "Getting latest Bookstack release"
+        chown -R www-data:www-data "${BOOKSTACK_DIR}"
         git reset --hard >/dev/null 2>&1
         git pull origin release >/dev/null 2>&1
+        msg_ok "Latest Bookstack release downloaded"
+        msg_info "Updating Bookstack"
         curl -s https://getcomposer.org/installer -o composer-setup.php >/dev/null 2>&1
-        chown -R www-data: "$updateDir"
-        php composer-setup.php --quiet
-        rm -f composer-setup.php
-        sudo -u www-data php composer.phar install --no-dev --no-plugins >/dev/null 2>&1
-        chown -R root: "$updateDir" && chown -R www-data: "$updateDir"/{storage,bootstrap/cache,public/uploads}
+        php composer-setup.php --quiet >/dev/null 2>&1
+        rm -f composer-setup.php >/dev/null 2>&1
+        sudo -u www-data composer install --no-dev >/dev/null 2>&1
+        chown -R root: "${BOOKSTACK_DIR}" && chown -R www-data: "${BOOKSTACK_DIR}"/{storage,bootstrap/cache,public/uploads}
         php artisan migrate --no-interaction --force >/dev/null 2>&1
         msg_ok "Bookstack updated successfully"
-        msg_info "Cleaning Up Update"
-        php artisan cache:clear
-        php artisan config:clear
-        php artisan view:clear
-        msg_ok "Finished cleaning up"
+        msg_info "Finishing up"
+        php artisan cache:clear >/dev/null 2>&1
+        php artisan config:clear >/dev/null 2>&1
+        php artisan view:clear >/dev/null 2>&1
+        msg_ok "Cleanup finished"
+        NEW_VERS="$(cat "${BOOKSTACK_DIR}"/version)"
+        msg_ok "Bookstack updated from ${CURRENT_VERS} to ${NEW_VERS}"
 }
 
 function script_init() {
+        getParams "$@"
         if [[ "$fqdn" = "" ]]; then
                 read -rp "Enter server FQDN [e.g docs.example.com]: " fqdn
         fi
-        if [[ "$mail" = "" ]]; then
+        if [[ "$mail" = "" && "$nocert" != true ]]; then
                 read -rp "Enter Mail for Certbot: " mail
         fi
-        if [[ "$fqdn" = "" ]] || [[ "$(whoami)" != "root" ]]; then
+        if [[ -z "$configFile" ]]; then
+                configFile="config.ini"
+        fi
+        if [[ "$fqdn" = "" ]] || [[ "$EUID" != 0 ]]; then
                 clear
-                msg_error "Script couldn't be executed!" --error
+                msg_error "Script couldn't be executed!"
         else
                 if [[ "$installDir" = "" ]]; then
                         installDir="/var/www/bookstack"
@@ -289,43 +287,51 @@ function script_init() {
                 scriptSummary
         fi
 }
-
-while test $# -gt 0; do
-        case "$1" in
-        -h | --help)
-                helpMsg
-                ;;
-        -d | --domain)
-                fqdn="$2"
-                ;;
-        -i | --installdir)
-                installDir="$2"
-                ;;
-        -e | --email)
-                mail="$2"
-                ;;
-        --no-cert)
-                nocert=true
-                ;;
-        -f | --force)
-                force=true
-                ;;
-        -u | --update)
-                updateDir="$2"
-                updateBS
-                ;;
-        --*)
-                msg_error "Unknown option $1"
-                helpMsg
-                exit 1
-                ;;
-        -*)
-                msg_error "Unknown option $1"
-                helpMsg
-                exit 1
-                ;;
-        esac
-        shift
-done
-
-script_init
+function getParams() {
+        while test $# -gt 0; do
+                case "$1" in
+                -h | --help)
+                        helpMsg
+                        ;;
+                -d | --domain)
+                        fqdn="$2"
+                        ;;
+                -i | --installdir)
+                        installDir="$2"
+                        ;;
+                -e | --email)
+                        mail="$2"
+                        ;;
+                --no-cert)
+                        nocert=true
+                        ;;
+                -f | --force)
+                        force=true
+                        ;;
+                -u | --update)
+                        checkBookstack
+                        ;;
+                -b | --backup-dir)
+                        BACKUP_DIR="$2"
+                        ;;
+                -l | --bookstack-dir)
+                        BOOKSTACK_DIR="$2"
+                        ;;
+                -c | --config)
+                        configFile="$2"
+                        ;;
+                --*)
+                        msg_error "Unknown option $1"
+                        helpMsg
+                        exit 1
+                        ;;
+                -*)
+                        msg_error "Unknown option $1"
+                        helpMsg
+                        exit 1
+                        ;;
+                esac
+                shift
+        done
+}
+script_init "$@"
