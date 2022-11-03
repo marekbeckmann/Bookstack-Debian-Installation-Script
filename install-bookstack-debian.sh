@@ -122,7 +122,6 @@ function configureApache() {
                 printf "%s" "$output" | tee /etc/apache2/sites-available/bookstack.conf >/dev/null 2>&1
                 sed -i "s/FQDN/${fqdn}/g" /etc/apache2/sites-available/bookstack.conf
                 sed -i "s/INSTALLDIR/${installDir//\//\\/}/g" /etc/apache2/sites-available/bookstack.conf
-
         fi
 
         a2enmod rewrite >/dev/null 2>&1
