@@ -120,6 +120,8 @@ function configureApache() {
         else
                 getIni "START_APACHECONF" "END_APACHECONF"
                 printf "%s" "$output" | tee /etc/apache2/sites-available/bookstack.conf >/dev/null 2>&1
+                sed -i "s/FQDN/${fqdn}/g" /etc/apache2/sites-available/bookstack.conf
+                sed -i "s/INSTALLDIR/${installDir//\//\\/}/g" /etc/apache2/sites-available/bookstack.conf
 
         fi
 
@@ -162,6 +164,7 @@ function configureNginx() {
         else
                 getIni "START_NGINXCONF" "END_NGINXCONF"
                 printf "%s" "$output" | tee /etc/nginx/sites-available/"${fqdn}" >/dev/null 2>&1
+                sed -i "s/FQDN/${fqdn}/g" /etc/nginx/sites-available/"${fqdn}"
         fi
         ln -s /etc/nginx/sites-available/"${fqdn}" /etc/nginx/sites-enabled/ >/dev/null 2>&1
         if [[ "$nocert" != true ]]; then
