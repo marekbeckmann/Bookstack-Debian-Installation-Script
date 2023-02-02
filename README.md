@@ -55,7 +55,7 @@ sudo ./install-bookstack-debian.sh -u -b /mnt/backup
 Example Output: 
 
 ```bash
-bash install-bookstack-debian.sh -l /var/www/bookstack-ext --db bookstack_ext -u
+$ bash install-bookstack-debian.sh -l /var/www/bookstack-ext --db bookstack_ext -u
  ✓ Found Bookstack version v22.11
  ✓ Backup complete!
  ✓ Latest Bookstack release downloaded
