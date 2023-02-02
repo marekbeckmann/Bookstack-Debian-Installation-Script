@@ -28,9 +28,9 @@ You can run the script with the following parameters:
 | `--no-cert`                       | Doesn't attempt to create a SSL certificate (NGINX config will fail)         | ❌        |
 
 **Example:**
-```
-sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com
 ```bash
+sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com
+```
 This will install Bookstack to `/var/www/bookstack1` and create an SSL certificate for the domain `docs.example.com`. If any files/directories already exist, the script will abort and warn you about it. Please use the `-f` option cautiously.
 
 If you don't provide a domain when running the script, it will be queried interactively.
