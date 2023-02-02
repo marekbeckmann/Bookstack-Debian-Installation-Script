@@ -52,5 +52,14 @@ sudo ./install-bookstack-debian.sh -u -b /mnt/backup
 ```
 **IMPORTANT**: If your Bookstack installation is not located in `/var/www/bookstack`, you have to specify the directory with `-l <directory>`. Please make sure to specify `-l <directory>` before `-u` or `--update`.
 
+Example Output: 
 
+```bash
+ ✓ Found Bookstack version v22.11
+ ✓ Backup complete!
+ ✓ Latest Bookstack release downloaded
+ ✓ Bookstack updated successfully
+ ✓ Cleanup finished
+ ✓ Bookstack updated from v22.11 to v23.01.1
+ ``` 
 
