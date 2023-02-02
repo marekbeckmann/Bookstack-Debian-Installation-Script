@@ -13,8 +13,11 @@ CM="${GN}✓${CL}"
 CROSS="${RD}✗${CL}"
 WARN="${YW}⚠${CL}"
 
+# Default values (change here or by using the apropiate flags)
 BACKUP_DIR="/root/bookstack-backups"
 BOOKSTACK_DIR="/var/www/bookstack"
+DB_NAME="bookstack"
+
 DATE="$(date +%d-%m-%Y)"
 
 function msg_info() {
@@ -108,7 +111,6 @@ function setupBookstack() {
                 php artisan migrate --no-interaction --force >/dev/null 2>&1
                 msg_ok "Bookstack Settings configured successfully"
         fi
-
 }
 
 function configureApache() {
@@ -197,12 +199,17 @@ function helpMsg() {
 You can use the following Options:
 
   [-h] => Help Dialog
+  [-v] => Show installed Version (requires -l <bookstack-dir>)
+  [-c] [--config] => Path to custom config file
   [-d] [--domain] => Your BookStack Domain
   [-e] [--email] => Email for Certbot
   [-i] [--installdir] => Specifies the directory, BookStack will be installed in
   [-f] [--force] => Overrides existing files and directories, if needed
   [--no-cert] => Neither a Lets Encrypt nor a selfsigned certificate will be created
   [-u] [--update] => Updates existing BookStack Installation. Can be used with a different installation directory
+  [-b] [--backup-dir] => Specifies the directory, where backups will be stored
+  [-l] [--bookstack-dir] => Specifies the directory, where BookStack is installed
+  [--db] => Specifies name of the Bookstack database you want to backup
 
 More Documentation can be found on Github: https://github.com/marekbeckmann/Bookstack-Debian-Installation-Script"
 }
@@ -212,7 +219,7 @@ function backup() {
         BACKUP_DEST="$BACKUP_DIR"/Backup_"${DATE}"
         mkdir -p "$BACKUP_DEST" >/dev/null 2>&1
         zip -r "${BACKUP_DEST}"/bookstack-web-bak.zip "${BOOKSTACK_DIR}" >/dev/null 2>&1
-        mysqldump -u root bookstack >"${BACKUP_DEST}"/bookstack-db-bak.sql >/dev/null 2>&1 || errorHandler "Failed to backup database, aborting"
+        mysqldump -u root "${DB_NAME}" >"${BACKUP_DEST}"/"${DB_NAME}"-db-bak.sql >/dev/null 2>&1 || errorHandler "Failed to backup database, aborting"
         msg_ok "Backup complete!"
         updateBS
 }
@@ -273,10 +280,7 @@ function script_init() {
                 read -rp "Enter Mail for Certbot: " mail
         fi
         if [[ -z "$configFile" ]]; then
-                configFile="$(
-                        cd -- "$(dirname "$0")" >/dev/null 2>&1
-                        pwd -P
-                )/config.ini"
+                configFile="$(dirname "$0")/config.ini"
         fi
         if [[ "$fqdn" = "" ]] || [[ "$EUID" != 0 ]]; then
                 clear
@@ -322,6 +326,9 @@ function getParams() {
                         ;;
                 -l | --bookstack-dir)
                         BOOKSTACK_DIR="$2"
+                        ;;
+                --db)
+                        DB_NAME="$2"
                         ;;
                 -c | --config)
                         configFile="$2"
