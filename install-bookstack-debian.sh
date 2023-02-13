@@ -282,13 +282,13 @@ function script_init() {
         if [[ -z "$configFile" ]]; then
                 configFile="$(dirname "$0")/config.ini"
         fi
+        if [[ -z "$installDir" ]]; then
+                installDir="/var/www/bookstack"
+        fi
         if [[ "$fqdn" = "" ]] || [[ "$EUID" != 0 ]]; then
                 clear
                 msg_error "Script couldn't be executed!"
         else
-                if [[ "$installDir" = "" ]]; then
-                        installDir="/var/www/bookstack"
-                fi
                 installPackages
                 setupDB
                 setupBookstack
