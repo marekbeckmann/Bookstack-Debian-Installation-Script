@@ -281,6 +281,7 @@ function script_init() {
         fi
         if [[ -z "$configFile" ]]; then
                 configFile="$(dirname "$0")/config.ini"
+                configFile="$(realpath "$configFile")"
         fi
         if [[ -z "$installDir" ]]; then
                 installDir="/var/www/bookstack"
