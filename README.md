@@ -38,7 +38,7 @@ $ bash install-bookstack-debian.sh -d docs.example.com -e root@localhost
 
 ```
 
-This will install Bookstack to `/var/www/bookstack1` and create a SSL certificate for the domain `docs.example.com`. If any files/directories already exist, the script will abort and warn you about it. Please use the `-f` option cautiously.
+This will install Bookstack to `/var/www/bookstack` and create a SSL certificate for the domain `docs.example.com`. If any files/directories already exist, the script will abort and warn you about it. Please use the `-f` option cautiously.
 
 If you don't provide a domain when running the script, it will be queried interactively.
 Without any options, the script will then install Bookstack to `/var/www/bookstack`. It will furthermore setup NGINX to reverse proxy to Apache2 and configure TLS. 

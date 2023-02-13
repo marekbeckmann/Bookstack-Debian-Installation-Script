@@ -179,9 +179,10 @@ function configureNginx() {
         ln -s /etc/nginx/sites-available/"${fqdn}" /etc/nginx/sites-enabled/ >/dev/null 2>&1
         if [[ "$nocert" != true ]]; then
                 msg_info "Requesting SSL Certificate"
-                certbot --nginx --non-interactive --agree-tos --domains "${fqdn}" --email "${mail}" >/dev/null 2>&1 ||
-                        msg_error "Certificate creation failed" &&
-                        deploySSLCert
+                certbot --nginx --non-interactive --agree-tos --domains "${fqdn}" --email "${mail}" >/dev/null 2>&1 || {
+                        msg_error "Let's Encrypt Certificate creation failed" && deploySSLCert
+                }
+
                 msg_ok "SSL Certificate created successfully"
         else
                 msg_ok "Skipping Certbot"
