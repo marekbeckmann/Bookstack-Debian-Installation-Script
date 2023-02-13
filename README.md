@@ -34,8 +34,20 @@ sudo ./install-bookstack-debian.sh -d docs.example.com -e admin@example.com
 Example Output: 
 
 ```bash
-$ bash install-bookstack-debian.sh -d docs.example.com -e root@localhost
-
+$ bash install-bookstack-debian.sh -d docs.example.com -e root@localhost -f
+ ✓ System updated
+ ✓ All Packages installed
+ ⚠ Database bookstack already exists, deleting...
+ ✓ Database setup finished successfully
+ ✓ Bookstack downloaded successfully
+ ✓ Composer installed successfully
+ ✓ Bookstack Settings configured successfully
+ ✓ Apache2 configured successfully
+ ✗ Let's Encrypt Certificate creation failed
+ ✗ Using Self Signed Certificate (Certbot failed)
+ ✓ Self Signed Certificate created successfully
+ ✓ SSL Certificate created successfully
+ ✓ Bookstack installed successfully
 ```
 
 This will install Bookstack to `/var/www/bookstack` and create a SSL certificate for the domain `docs.example.com`. If any files/directories already exist, the script will abort and warn you about it. Please use the `-f` option cautiously.
