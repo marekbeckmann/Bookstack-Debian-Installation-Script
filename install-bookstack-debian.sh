@@ -64,6 +64,15 @@ function installPackages() {
 function setupDB() {
         msg_info "Setting up database"
         bookstackpwd="$(pwgen -N 1 -s 96)" >/dev/null 2>&1
+        # Check if database exists
+        if [[ -n "$(mysql -u root -e "SHOW DATABASES LIKE 'bookstack'")" && -z "$force" ]]; then
+                errorHandler "Database ${DB_NAME} already exists, aborting..."
+        elif [[ -n "$(mysql -u root -e "SHOW DATABASES LIKE 'bookstack'")" && -n "$force" ]]; then
+                msg_warning "Database ${DB_NAME} already exists, deleting..."
+                mysql -u root -e "DROP DATABASE bookstack" >/dev/null 2>&1
+                mysql -u root -e "DROP USER 'bookstack'@'localhost'" >/dev/null 2>&1
+        fi
+        mysql -u root -e "CREATE DATABASE bookstack" >/dev/null 2>&1
         mysql -u root -e "DROP USER ''@'localhost'" >/dev/null 2>&1
         mysql -u root -e "DROP USER ''@'$(hostname)'" >/dev/null 2>&1
         mysql -u root -e "DROP DATABASE test" >/dev/null 2>&1
@@ -281,7 +290,7 @@ function script_init() {
         fi
         if [[ -z "$configFile" ]]; then
                 configFile="$(dirname "$0")/config.ini"
-                configFile="$(realpath "$configFile")"
+                configFile="$(realpath "$configFile")"f
         fi
         if [[ -z "$installDir" ]]; then
                 installDir="/var/www/bookstack"
