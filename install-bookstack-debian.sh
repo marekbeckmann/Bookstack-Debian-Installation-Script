@@ -153,12 +153,11 @@ function configureApache() {
 
 function deploySSLCert() {
         if [[ "$nocert" != true ]]; then
-                msg_error "Using Self Signed Certificate (Certbot failed)"
+                msg_warning "Using Self Signed Certificate (Certbot failed)"
                 msg_info "Creating Self Signed Certificate"
                 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=NA/ST=None/L=None/O=None/CN=${fqdn}" -keyout /etc/ssl/private/bookstack-selfsigned.key -out /etc/ssl/certs/bookstack-selfsigned.crt >/dev/null 2>&1
                 sed -i "s/\/etc\/letsencrypt\/live\/${fqdn}\/fullchain.pem/\/etc\/ssl\/certs\/bookstack-selfsigned.crt/g" /etc/nginx/sites-available/"${fqdn}"
                 sed -i "s/\/etc\/letsencrypt\/live\/${fqdn}\/privkey.pem/\/etc\/ssl\/private\/bookstack-selfsigned.key/g" /etc/nginx/sites-available/"${fqdn}"
-                msg_ok "Self Signed Certificate created successfully"
         else
                 msg_error "Certificate creation failed."
         fi
@@ -182,7 +181,6 @@ function configureNginx() {
                 certbot --nginx --non-interactive --agree-tos --domains "${fqdn}" --email "${mail}" >/dev/null 2>&1 || {
                         msg_error "Let's Encrypt Certificate creation failed" && deploySSLCert
                 }
-
                 msg_ok "SSL Certificate created successfully"
         else
                 msg_ok "Skipping Certbot"

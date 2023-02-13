@@ -43,8 +43,8 @@ $ bash install-bookstack-debian.sh -d docs.example.com -e root@localhost -f
  ✓ Composer installed successfully
  ✓ Bookstack Settings configured successfully
  ✓ Apache2 configured successfully
- ✗ Let's Encrypt Certificate creation failed
- ✗ Using Self Signed Certificate (Certbot failed)
+ ✗ Lets Encrypt Certificate creation failed
+ ⚠ Using Self Signed Certificate (Certbot failed)
  ✓ Self Signed Certificate created successfully
  ✓ SSL Certificate created successfully
  ✓ Bookstack installed successfully
