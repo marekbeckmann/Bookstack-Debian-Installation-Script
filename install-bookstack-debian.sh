@@ -58,6 +58,7 @@ function installPackages() {
         apt-get -y install lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 >/dev/null 2>&1
         echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list >/dev/null 2>&1
         curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/sury-keyring.gpg >/dev/null 2>&1
+        apt-get -y update >/dev/null 2>&1
         apt-get -y full-upgrade >/dev/null 2>&1
         msg_ok "System updated"
         msg_info "Installing necessary packages"
