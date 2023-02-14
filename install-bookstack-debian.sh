@@ -287,6 +287,16 @@ function updateBS() {
         exit 0
 }
 
+function getVersion() {
+        if [[ -f "${BOOKSTACK_DIR}"/version ]]; then
+                CURRENT_VERS="$(cat "${BOOKSTACK_DIR}"/version 2>/dev/null)"
+                msg_ok "Found Bookstack version ${CURRENT_VERS} in ${BOOKSTACK_DIR}"
+                exit 0
+        else
+                errorHandler "Bookstack not found in ${BOOKSTACK_DIR}"
+        fi
+}
+
 function script_init() {
         getParams "$@"
         if [[ "$fqdn" = "" ]]; then
@@ -349,6 +359,9 @@ function getParams() {
                         ;;
                 -c | --config)
                         configFile="$2"
+                        ;;
+                -v | --version)
+                        getVersion
                         ;;
                 --*)
                         msg_error "Unknown option $1"
