@@ -53,7 +53,7 @@ function getIni() {
 
 function installPackages() {
         msg_info "Updating system"
-        OLD_PHPVERSION=$(php -v | head -n 1 | cut -d" " -f 2 | cut -d"." -f 1-2)
+        OLD_PHPVERSION=$(php -v 2>/dev/null | head -n 1 | cut -d" " -f 2 | cut -d"." -f 1-2)
         apt-get -y update >/dev/null 2>&1
         apt-get -y install lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 >/dev/null 2>&1
         echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list >/dev/null 2>&1

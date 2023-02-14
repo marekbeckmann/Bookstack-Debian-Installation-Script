@@ -45,7 +45,6 @@ $ bash install-bookstack-debian.sh -d docs.example.com -e root@localhost -f
  ✓ Apache2 configured successfully
  ✗ Lets Encrypt Certificate creation failed
  ⚠ Using Self Signed Certificate (Certbot failed)
- ✓ Self Signed Certificate created successfully
  ✓ SSL Certificate created successfully
  ✓ Bookstack installed successfully
 ```
