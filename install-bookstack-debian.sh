@@ -53,11 +53,18 @@ function getIni() {
 
 function installPackages() {
         msg_info "Updating system"
+        OLD_PHPVERSION=$(php -v | head -n 1 | cut -d" " -f 2 | cut -d"." -f 1-2)
         apt-get -y update >/dev/null 2>&1
+        apt-get -y install lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 >/dev/null 2>&1
+        echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list >/dev/null 2>&1
+        curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/sury-keyring.gpg >/dev/null 2>&1
         apt-get -y full-upgrade >/dev/null 2>&1
         msg_ok "System updated"
         msg_info "Installing necessary packages"
         apt-get -y install wget pwgen unzip git curl sudo apache2 libapache2-mod-php php mariadb-server mariadb-client mariadb-common php-{fpm,curl,mbstring,ldap,tidy,xml,zip,gd,mysql,cli} >/dev/null 2>&1
+        PHP_VERSION=$(php -v | head -n 1 | cut -d " " -f 2 | cut -d "." -f 1-2)
+        update-alternatives --set php /usr/bin/php"${PHP_VERSION}" >/dev/null 2>&1
+        systemctl enable --now php"${PHP_VERSION}"-fpm >/dev/null 2>&1
         msg_ok "All Packages installed"
 }
 
@@ -100,14 +107,12 @@ function setupBookstack() {
                 git clone https://github.com/BookStackApp/BookStack.git --branch release --single-branch "$installDir" >/dev/null 2>&1
                 chown -R www-data: "$installDir" >/dev/null 2>&1
                 msg_ok "Bookstack downloaded successfully"
-
                 msg_info "Installing Composer"
                 curl -s https://getcomposer.org/installer -o composer-setup.php >/dev/null 2>&1
                 php composer-setup.php --quiet >/dev/null 2>&1
                 rm -f composer-setup.php >/dev/null 2>&1
                 sudo -u www-data php composer.phar install --no-dev --no-plugins >/dev/null 2>&1
                 msg_ok "Composer installed successfully"
-
                 msg_info "Configuring Bookstack Settings..."
                 mv .env.example .env
                 chown -R root: "$installDir" && sudo chown -R www-data: "$installDir"/{storage,bootstrap/cache,public/uploads}
@@ -143,7 +148,10 @@ function configureApache() {
         fi
         if [[ "$VERSION_ID" = 11 ]]; then
                 a2enmod proxy_fcgi setenvif >/dev/null 2>&1
-                a2enconf php7.4-fpm >/dev/null 2>&1
+                a2dismod php"${OLD_PHPVERSION}" >/dev/null 2>&1
+                a2enmod php"${PHP_VERSION}" >/dev/null 2>&1
+                a2disconf php"${OLD_PHPVERSION}"-fpm >/dev/null 2>&1
+                a2enconf php"${PHP_VERSION}"-fpm >/dev/null 2>&1
         fi
         a2dissite 000-default.conf >/dev/null 2>&1
         a2ensite bookstack.conf >/dev/null 2>&1
