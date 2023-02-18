@@ -229,6 +229,7 @@ You can use the following Options:
   [--db] => Specifies name of the Bookstack database you want to backup
 
 More Documentation can be found on Github: https://github.com/marekbeckmann/Bookstack-Debian-Installation-Script"
+        exit 0
 }
 
 function backup() {
@@ -236,7 +237,7 @@ function backup() {
         BACKUP_DEST="$BACKUP_DIR"/Backup_"${DATE}"
         mkdir -p "$BACKUP_DEST" >/dev/null 2>&1
         zip -r "${BACKUP_DEST}"/bookstack-web-bak.zip "${BOOKSTACK_DIR}" >/dev/null 2>&1
-        mysqldump -u root "${DB_NAME}" >"${BACKUP_DEST}"/"${DB_NAME}"-db-bak.sql >/dev/null 2>&1 || errorHandler "Failed to backup database, aborting"
+        mysqldump -u root "${DB_NAME}" >"${BACKUP_DEST}"/"${DB_NAME}"-db-bak.sql 2>/dev/null || errorHandler "Failed to backup database, aborting"
         msg_ok "Backup complete!"
         updateBS
 }
