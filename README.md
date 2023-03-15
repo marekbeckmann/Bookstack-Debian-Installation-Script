@@ -26,6 +26,7 @@ You can run the script with the following parameters:
 | `-i` `--installdir` `<directory>` | Specifies installation directory (Defaults to `/var/www/bookstack`)          | ❌        |
 | `-f` `--force`                    | Overrides existing files and directories                                     | ❌        |
 | `--no-cert`                       | Doesn't attempt to create a SSL certificate (NGINX config will fail)         | ❌        |
+| `--db` `<database>`               | Specifies database name (Defaults to `bookstack`)                            | ❌        |
 
 **Example:**
 ```bash
@@ -62,7 +63,6 @@ You can use the update function with the following parameters:
 | `-u` `--update`                      | Updates bookstack installation in specified directory (Defaults to `/var/www/bookstack`) | ✅        |
 | `-b` `--backup-dir` `<directory>`    | Specifies backup directory (Defaults to `/var/www/bookstack-backup`)                     | ❌        |
 | `-l` `--bookstack-dir` `<directory>` | Specifies bookstack directory (Defaults to `/var/www/bookstack`)                         | ❌        |
-| `--db` `<database>`                  | Specifies database name (Defaults to `bookstack`)                                        | ❌        |
 
 **Example:**
 ```bash
