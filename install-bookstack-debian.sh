@@ -73,23 +73,22 @@ function setupDB() {
         msg_info "Setting up database"
         bookstackpwd="$(pwgen -N 1 -s 96)" >/dev/null 2>&1
         # Check if database exists
-        if [[ -n "$(mysql -u root -e "SHOW DATABASES LIKE 'bookstack'")" && -z "$force" ]]; then
+        if [[ -n "$(mysql -u root -e "SHOW DATABASES LIKE '$DB_NAME'")" && -z "$force" ]]; then
                 errorHandler "Database ${DB_NAME} already exists, aborting..."
-        elif [[ -n "$(mysql -u root -e "SHOW DATABASES LIKE 'bookstack'")" && -n "$force" ]]; then
+        elif [[ -n "$(mysql -u root -e "SHOW DATABASES LIKE '$DB_NAME'")" && -n "$force" ]]; then
                 msg_warning "Database ${DB_NAME} already exists, deleting..."
-                mysql -u root -e "DROP DATABASE bookstack" >/dev/null 2>&1
-                mysql -u root -e "DROP USER 'bookstack'@'localhost'" >/dev/null 2>&1
+                mysql -u root -e "DROP DATABASE $DB_NAME" >/dev/null 2>&1
+                mysql -u root -e "DROP USER '$DB_NAME'@'localhost'" >/dev/null 2>&1
         fi
-        mysql -u root -e "CREATE DATABASE bookstack" >/dev/null 2>&1
         mysql -u root -e "DROP USER ''@'localhost'" >/dev/null 2>&1
         mysql -u root -e "DROP USER ''@'$(hostname)'" >/dev/null 2>&1
         mysql -u root -e "DROP DATABASE test" >/dev/null 2>&1
         mysql -u root -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')" >/dev/null 2>&1
         mysql -u root -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%'" >/dev/null 2>&1
         mysql -u root -e "FLUSH PRIVILEGES" >/dev/null 2>&1
-        mysql -u root -e "CREATE DATABASE bookstack" >/dev/null 2>&1
-        mysql -u root -e "CREATE USER 'bookstack'@'localhost' IDENTIFIED BY '$bookstackpwd'" >/dev/null 2>&1
-        mysql -u root -e "GRANT ALL ON bookstack.* TO 'bookstack'@'localhost'" >/dev/null 2>&1
+        mysql -u root -e "CREATE DATABASE '$DB_NAME'" >/dev/null 2>&1
+        mysql -u root -e "CREATE USER '$DB_NAME'@'localhost' IDENTIFIED BY '$bookstackpwd'" >/dev/null 2>&1
+        mysql -u root -e "GRANT ALL ON '$DB_NAME'.* TO '$DB_NAME'@'localhost'" >/dev/null 2>&1
         mysql -u root -e "FLUSH PRIVILEGES" >/dev/null 2>&1
         msg_ok "Database setup finished successfully"
 }
@@ -234,10 +233,11 @@ More Documentation can be found on Github: https://github.com/marekbeckmann/Book
 
 function backup() {
         msg_info "Backing up Bookstack"
+        . "${BOOKSTACK_DIR}"/.env >/dev/null 2>&1 || errorHandler "Failed to load Bookstack environment variables, aborting"
         BACKUP_DEST="$BACKUP_DIR"/Backup_"${DATE}"
         mkdir -p "$BACKUP_DEST" >/dev/null 2>&1
         zip -r "${BACKUP_DEST}"/bookstack-web-bak.zip "${BOOKSTACK_DIR}" >/dev/null 2>&1
-        mysqldump -u root "${DB_NAME}" >"${BACKUP_DEST}"/"${DB_NAME}"-db-bak.sql 2>/dev/null || errorHandler "Failed to backup database, aborting"
+        mysqldump -u root "${DB_DATABASE}" >"${BACKUP_DEST}"/"${DB_DATABASE}"-db-bak.sql 2>/dev/null || errorHandler "Failed to backup database, aborting"
         msg_ok "Backup complete!"
         updateBS
 }
