@@ -268,6 +268,7 @@ function updateBS() {
         cd "${BOOKSTACK_DIR}" || errorHandler "Failed to change directory to ${BOOKSTACK_DIR}, aborting"
         msg_info "Getting latest Bookstack release"
         chown -R www-data:www-data "${BOOKSTACK_DIR}"
+        git config --global --add safe.directory "${BOOKSTACK_DIR}"
         git reset --hard >/dev/null 2>&1
         git pull origin release >/dev/null 2>&1
         msg_ok "Latest Bookstack release downloaded"
